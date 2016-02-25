@@ -1,0 +1,209 @@
+---
+title: "Spam"
+author: "issa fall"
+date: "December 1, 2015"
+output: html_document
+---
+
+##Loading
+```{r loading,echo=TRUE}
+library(kernlab)
+library(caret)
+data("spam")
+head(spam)
+str(spam[, 1:5])
+```
+##Our algorithm
+
+.find a value C
+
+.frequency of `your` > C predict "spam"
+```{r prediction,echo=TRUE}
+plot(density(spam$your[spam$type == "nonspam"]),col ="blue",main = "",xlab = "Frequency of `your`")
+lines(density(spam$your[spam$type == "spam"]),col ="red")
+abline(v = 0.5, col ="black")
+prediction<-ifelse(spam$your > 0.5, "spam","nonspam")
+table(prediction, spam$type)/length(spam$type)
+```
+##Accuracy
+Accuracy = 0.459 + 0.292 = 0.751$
+
+##Wage Dataset
+```{r Wage,echo=TRUE}
+library(ISLR); library(ggplot2); library(caret); library(Hmisc)
+data(Wage)
+summary(Wage)
+```
+##Get training/test sets
+```{r,echo=TRUE}
+inTrain<-createDataPartition(y = Wage$wage, p = 0.7, list = FALSE)
+training<-Wage[inTrain, ]
+testing<-Wage[-inTrain, ]
+dim(training)
+dim(testing)
+```
+##Feature plot(caret package)
+```{r,echo=TRUE}
+featurePlot(x = training[, c("age","education","jobclass")], y = training$wage, plot = "pairs")
+```
+
+
+##Qplot(ggplot2)
+```{r,echo=TRUE}
+qplot(age, wage, data = training)
+qplot(age, wage, colour = jobclass, data = training)
+```
+
+
+##Add regression smoothers(ggplot2)
+```{r,echo=TRUE}
+qq<-qplot(age, wage, colour = education, data = training)
+qq + geom_smooth(method = "lm", formula = y ~ x)
+```
+
+
+##cut2, making factor(Hmisc package)
+```{r,echo=TRUE}
+cutWage<-cut2(training$wage, g = 3)
+table(cutWage)
+```
+
+
+##boxplot with cut2
+```{r,echo=TRUE}
+p1<-qplot(cutWage, age, data = training, fill = cutWage, geom = c("boxplot"))
+p1
+```
+
+
+##boxplots with points overlayed
+```{r,echo=TRUE}
+p2<-qplot(cutWage, age, data = training, fill = cutWage, geom = c("boxplot","jitter"))
+p2
+##grid.arrange(p1, p2, ncol =2)
+```
+##Tables
+```{r,echo=TRUE}
+t1<-table(cutWage, training$jobclass)
+t1
+```
+##Proportions
+```{r,echo=TRUE}
+prop.table(t1, 1)
+```
+##Density plots
+```{r,echo=TRUE}
+qplot(wage, colour = education, data = training, geom = "density")
+```
+##Fit a linear model
+```{r linear model,echo=TRUE}
+modFit<-train(wage ~ age+jobclass+education, method = "lm", data = training)
+findMod<-modFit$finalModel
+print(modFit)
+```
+##Diagnostic
+```{r diagnostic,echo=TRUE}
+plot(findMod, 1, pch = 19, cex = 0.5, col ="#00000010")
+qplot(findMod$fitted, findMod$residuals, colour = race, data = training)
+```
+
+##Plot by index:whenever you see outliers in plot by index,means that there are missing variable
+```{r plot index,echo=TRUE}
+plot(findMod$residuals, pch = 19)
+```
+
+
+##If we want to use all covariates
+```{r include all variables,echo=TRUE}
+modFitAll<-train(wage ~., data = training, method ="lm")
+pred<-predict(modFitAll, testing)
+qplot(wage, pred, data = testing)
+```
+
+
+##Boosting method
+```{r boost,echo=TRUE}
+Wage<-subset(Wage, select = -c(log(wage)))
+inTrain<-createDataPartition(y =Wage$wage, p =0.7, list = FALSE)
+training<-Wage[inTrain, ]
+testing<-Wage[-inTrain, ]
+modFit<-train(wage ~., method = "gbm",data =training, verbose = FALSE)
+print(modFit)
+qplot(predict(modFit, testing),wage, data = testing)
+```
+
+
+##Iris data: tree method
+```{r,echo=TRUE}
+data("iris")
+names(iris)
+table(iris$Species)
+inTrain<-createDataPartition(y =iris$Species, p =0.7, list = FALSE)
+training<-iris[inTrain, ]
+testing<-iris[-inTrain, ]
+dim(training); dim(testing)
+qplot(Petal.Width, Sepal.Width, colour =Species, data = training)
+library(pgmm)
+modFit<-train(Species ~., method ="rpart", data =training)
+print(modFit$finalModel)
+plot(modFit$finalModel, uniform =TRUE, main = "Classification Tree")
+text(modFit$finalModel, use.n =TRUE,all =TRUE, cex = 0.8)
+##fancyRpartPlot(modFit$finalModel)
+```
+
+
+##Random forests method
+```{r,echo=TRUE}
+inTrain<-createDataPartition(y =iris$Species, p =0.7, list = FALSE)
+training<-iris[inTrain, ]
+testing<-iris[-inTrain, ]
+modFit<-train(Species ~., method ="rf", prox =TRUE, data =training)
+modFit
+```
+##Getting a single tree
+```{r,echo=TRUE}
+getTree(modFit$finalModel, k =4)
+```
+##Class "centers"
+```{r,echo=TRUE}
+irisP<-classCenter(training[, c(3,4)], training$Species,modFit$finalModel$prox)
+irisP<-as.data.frame(irisP); irisP$Species<-rownames(irisP)
+qplot(Petal.Width, Petal.Length, col = Species, data = training)
+##p+geom_point(aes(x =Petal.Width, y =Petal.Length), col =Species, size =5,shape =4, data =irisP)
+```
+
+
+##Predicting new values
+```{r,echo=TRUE}
+pred<-predict(modFit, testing); testing$predRight<-pred == testing$Species
+table(pred, testing$Species)
+qplot(Petal.Width, Petal.Length, colour =predRight,data = testing, main = "newdata Predictions")
+```
+
+
+##Model based prediction:"lda","nb",etc..meaning there are others(see course)
+```{r,echo=TRUE}
+```
+##building predictions
+```{r,echo=TRUE}
+##inTrain<-createDataPartition(y =iris$Species, p =0.7, list = FALSE)
+##training<-iris[inTrain, ]
+##testing<-iris[-inTrain, ]
+##modlda<-train(Species ~., data =training, method ="lda")
+##modnb<-train(Species ~., data =training, method ="nb")
+##plda<-predict(modlda, testing)
+##pnb<-predict(modnb, testing)
+##table(plda, pnb)
+```
+
+##Comparison of results
+```{r,echo=TRUE}
+##equalPredictions = (plda == pnb)
+##qplot(Petal.Width, Sepal.Width, colour = equalPredictions, data = testing)
+
+
+
+
+
+
+
