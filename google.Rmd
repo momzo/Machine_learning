@@ -1,0 +1,114 @@
+---
+title: "google"
+author: "issa fall"
+date: "December 27, 2015"
+output: html_document
+---
+##google stock
+```{r,echo=TRUE}
+library(quantmod)
+library(timeSeries)
+library(timeDate)
+library(xts)
+library(TTR)
+library(zoo)
+library(expsmooth)
+from.dat<-as.Date("01/01/09", format= "%m/%d/%y")
+to.dat<-as.Date("12/31/14", format ="%m/%d/%y")
+getSymbols("GS", src ="google", from =from.dat, to =to.dat)
+head(GS)
+periodicity(GS)
+getSymbols("GS", src = "google", from =from.dat, to =to.dat)
+head(GS)
+periodicity(GS)
+apply.weekly(GS, FUN = function(x){max(Cl(x))})
+```
+##Summarise monthly and store as time series
+```{r,echo=TRUE}
+mGoog<-apply.monthly(GS, FUN = function(x){max(Op(x))})
+mGoog
+##googOpen<-Op(mGoog)
+ts1<-ts(mGoog, frequency = 12)
+plot(ts1, xlab = "Years+1", ylab = "GS")
+```
+
+##Example of time series decomposition into parts
+```{r,echo=TRUE}
+plot(decompose(ts1), xlab = "Years+1")
+```
+
+
+##Training and test sets
+```{r,echo=TRUE}
+ts1Train<-window(ts1, start = 1, end = 5)
+ts1Test<-window(ts1, start = 5, end = (7-0.1))
+ts1Train
+dim(ts1Train);dim(ts1Test)
+```
+##Simple moving average
+```{r,echo=TRUE}
+plot(ts1Train)
+lines(ma(ts1Train, order =3), col ="red")
+```
+
+
+##Simple exponential smoothing
+```{r,echo=TRUE}
+ets1<-ets(ts1Train, model ="MMM")
+fcast<-forecast(ets1)
+plot(fcast);lines(ts1Test, col ="red")
+```
+
+
+##Get the accuracy
+```{r,echo=TRUE}
+accuracy(fcast, ts1Test)
+```
+
+##Summarise weekly and store as time series
+```{r,echo=TRUE}
+getFX("USD/EUR")
+mUS<-to.weekly(USDEUR)
+mUS
+USOpen<-Op(mUS)
+USOpen
+ts1<-ts(USOpen, frequency = 7)
+ts1
+plot(ts1,xlab = "Weeks+1",ylab = "USDEUR")
+```
+
+
+##Decompose a time series into parts
+```{r,echo=TRUE}
+plot(decompose(ts1),xlab = "Week+1")
+```
+
+
+##Training and test sets
+```{r,echo=TRUE}
+ts1Train<-window(ts1, start = 1, end = 5)
+ts1Test<-window(ts1, start = 5, end = (7-0.01))
+ts1Train
+```
+##Forecasting:choice between simple moving average and simple exponential smoothing
+##Simple moving average
+```{r,echo=TRUE}
+
+plot(ts1Train)
+lines(ma(ts1Train, order =3),col ="red")
+```
+##Simple exponential smoothing
+```{r,echo=TRUE}
+ets1<-ets(ts1Train, model ="MMM")
+fcast<-forecast(ets1)
+plot(fcast);lines(ts1Test, col ="red")
+```
+
+
+##Get accuracy
+```{r,echo=TRUE}
+accuracy(fcast,ts1Test)
+```
+
+
+
