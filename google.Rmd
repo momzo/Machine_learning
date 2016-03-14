@@ -125,6 +125,12 @@ dygraph(MSFT)%>%
   dyRangeSelector()
 
 ```
+##Lung Death in UK
+```{r,echo=TRUE}
+lungDeaths<-cbind(ldeaths, mdeaths,fdeaths)
+dygraph(lungDeaths, main = "Death from lung Disease(UK)") %>%
+  dyRangeSelector()
+```
 
 
 
