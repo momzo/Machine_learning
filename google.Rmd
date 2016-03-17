@@ -162,6 +162,14 @@ stocks<-as.data.frame(stocks)
 fit<-lm(WMT ~., data = stocks)
 fit
 summary(fit)
+```
+##Let's use only the closing prices in the model
+```{r,echo=TRUE}
+stocks2<-cbind(MSFT[, 4], HPQ[, 4], WMT[, 4])
+stocks2<-as.data.frame(stocks2)
+fit2<-lm(WMT ~., data = stocks2)
+fit2
+summary(fit2)
 
 
 
