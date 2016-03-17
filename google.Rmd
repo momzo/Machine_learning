@@ -126,11 +126,36 @@ dygraph(MSFT)%>%
 
 ```
 ##Lung Death in UK
+
 ```{r,echo=TRUE}
 lungDeaths<-cbind(ldeaths, mdeaths,fdeaths)
 dygraph(lungDeaths, main = "Death from lung Disease(UK)") %>%
   dyRangeSelector()
 ```
+
+##Predicting lung deaths in UK
+
+```{r,echo=TRUE}
+hw<-HoltWinters(ldeaths)
+p<-predict(hw, n.ahead = 36, prediction.interval = TRUE)
+all<-cbind(ldeaths, p)
+
+dygraph(all, main = "Death from lung Disease in UK") %>%
+  dySeries("ldeaths", label = "Actual") %>%
+  dySeries(c("p.lwr", "p.fit", "p.upr"), label = "Predicted")
+```
+##Mcrosoft and HPQ share prices
+```{r,echo=TRUE}
+getSymbols(c("MSFT","HPQ","WMT"), from = "2014-06-01", auto.assign = TRUE)
+
+stocks<-cbind(MSFT[, 2:4], HPQ[, 2:4], WMT[, 2:4])
+dygraph(stocks, main = "Microsoft and HPQ share Prices") %>%
+dySeries(c("MSFT.Low", "MSFT.Close","MSFT.High"), label = "MSFT") %>%
+  dySeries(c("HPQ.Low", "HPQ.Close", "HPQ.High"), label = "HPQ") %>%
+  dySeries(c("WMT.Low", "WMT.Close", "WMT.High"), label = "WMT")%>%
+  dyRangeSelector()
+```
+
 
 
 
