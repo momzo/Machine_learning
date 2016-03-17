@@ -153,8 +153,15 @@ dygraph(stocks, main = "Microsoft and HPQ share Prices") %>%
 dySeries(c("MSFT.Low", "MSFT.Close","MSFT.High"), label = "MSFT") %>%
   dySeries(c("HPQ.Low", "HPQ.Close", "HPQ.High"), label = "HPQ") %>%
   dySeries(c("WMT.Low", "WMT.Close", "WMT.High"), label = "WMT")%>%
+  
   dyRangeSelector()
 ```
+##Let's make a model
+```{r,echo=TRUE}
+stocks<-as.data.frame(stocks)
+fit<-lm(WMT ~., data = stocks)
+fit
+summary(fit)
 
 
 
