@@ -175,6 +175,7 @@ div<-quantmod::getDividends("MSFT", from = "2014-06-01", auto.assign = TRUE)
 div
 div<-as.data.frame(div)
 with(div, plot(quarterlyReturn(MSFT)))
+with(div, plot(dailyReturn(MSFT)))
 
 dygraph(div, main = "Dividends from MSFT")%>%
   dyRangeSelector()
