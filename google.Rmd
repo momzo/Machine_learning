@@ -13,8 +13,8 @@ library(xts)
 library(TTR)
 library(zoo)
 library(expsmooth)
-from.dat<-as.Date("01/01/09", format= "%m/%d/%y")
-to.dat<-as.Date("12/31/14", format ="%m/%d/%y")
+from.dat<-as.Date("01/01/10", format= "%m/%d/%y")
+to.dat<-as.Date("12/31/15", format ="%m/%d/%y")
 getSymbols("GS", src ="google", from =from.dat, to =to.dat)
 head(GS)
 periodicity(GS)
@@ -171,6 +171,12 @@ fit2<-lm(WMT ~., data = stocks2)
 fit2
 summary(fit2)
 
+div<-quantmod::getDividends("MSFT", from = "2014-06-01", auto.assign = TRUE)
+div
+div<-as.data.frame(div)
+with(div, plot(quarterlyReturn(MSFT)))
 
+dygraph(div, main = "Dividends from MSFT")%>%
+  dyRangeSelector()
 
 
