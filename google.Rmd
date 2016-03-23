@@ -179,5 +179,13 @@ with(div, plot(dailyReturn(MSFT)))
 
 dygraph(div, main = "Dividends from MSFT")%>%
   dyRangeSelector()
+##fred2<-read.csv("https://research.stlouisfed.org/fred2/series/S&P 500/downloaddata/S&P 500.csv")
+##head(fred2)
 
-
+```
+##adding features
+```{r,echo=TRUE}
+quantmod::getSymbols("MSFT", from ="2014-06-01",auto.assign = TRUE)
+chart_Series(MSFT)
+add_MACD()
+add_BBands()
